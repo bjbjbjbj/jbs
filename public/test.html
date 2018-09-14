@@ -1,0 +1,427 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+        <script type="text/javascript">
+        alert(navigator.platform);
+
+        // var bj = [['3'],['3'],['3']];
+        // function test(data,c_array){
+        //     var result = 0;
+        //     var a = new Array();
+        //     for (var i = 0; i < data.length; i++){
+        //         //获取每个选项的长度（选项数）
+        //         a[i] = data[i].length;
+        //     }
+        //     console.log(a);
+        // }
+
+        // function getCount(lengths,a,b){
+            
+        // }
+
+        // function cbj(a,b){
+        //     var up = 1;
+        //     var down = 1;
+        //     for(var i = 0 ; i < a ; i++){
+        //         up *= (a - i);
+        //     }
+        //     for(var i = 0 ; i < b ; i++){
+        //         down *= (i+1);
+        //     }
+        //     return up/down;
+        // }
+
+/**
+ * <p>Desc:竞彩公用js</p>
+ * <p>Author: luochang</p>
+ * <p>Copyright: Copyright (c) 2012</p> 
+ * <p>Company: 87.cn</p>
+ * Added by Luochang at 2012/3/27 Version 1.0
+ * Update by Wang YiLong at 2013/2/13 Version 1.0
+ */
+                                       // 3串4
+
+var combCrMap = new Array();                                                    // 使用一个全局Hashtable存储组合过关串长
+
+combCrMap["2c1"] = new Array("2c1");
+combCrMap["3c1"] = new Array("3c1"); 
+ /** 选择3场比赛 */
+combCrMap["3c3"] = new Array("2c1");                                             // 3串3
+combCrMap["3c4"] = new Array("3c1", "2c1");
+/** 选择4场比赛 */
+combCrMap["4c4"] = new Array("3c1");                                             // 4串4
+combCrMap["4c5"] = new Array("4c1", "3c1");                                      // 4串5
+combCrMap["4c6"] = new Array("2c1");                                             // 4串6
+combCrMap["4c11"] = new Array("4c1", "3c1", "2c1");                              // 4串11
+
+/** 选择5场比赛 */
+combCrMap["5c5"] = new Array("4c1");                                             // 5串5
+combCrMap["5c6"] = new Array("5c1", "4c1");                                      // 5串6
+combCrMap["5c10"] = new Array("2c1");                                            // 5串10
+combCrMap["5c16"] = new Array("5c1", "4c1", "3c1");                              // 5串16
+combCrMap["5c20"] = new Array("3c1", "2c1");                                     // 5串20
+combCrMap["5c26"] = new Array("5c1", "4c1", "3c1", "2c1");                       // 5串26
+
+/** 选择6场比赛 */
+combCrMap["6c6"] = new Array("5c1");                                             // 6串6
+combCrMap["6c7"] = new Array("6c1", "5c1");                                      // 6串7
+combCrMap["6c15"] = new Array("2c1");                                            // 6串15
+combCrMap["6c20"] = new Array("3c1");                                            // 6串20
+combCrMap["6c22"] = new Array("6c1", "5c1", "4c1");                              // 6串22
+combCrMap["6c35"] = new Array("3c1", "2c1");                                     // 6串35
+combCrMap["6c42"] = new Array("6c1", "5c1", "4c1", "3c1");                       // 6串42
+combCrMap["6c50"] = new Array("4c1", "3c1", "2c1");                              // 6串50
+combCrMap["6c57"] = new Array("6c1", "5c1", "4c1", "3c1", "2c1");                // 6串57
+
+/** 选择7场比赛 */
+combCrMap["7c7"] = new Array("6c1");                                             // 7串7
+combCrMap["7c8"] = new Array("7c1", "6c1");                                      // 7串8
+combCrMap["7c21"] = new Array("5c1");                                            // 7串21
+combCrMap["7c35"] = new Array("4c1");                                            // 7串35
+combCrMap["7c120"] = new Array("7c1", "6c1", "5c1", "4c1", "3c1", "2c1");        // 7串120
+
+/** 选择8场比赛 */
+combCrMap["8c8"] = new Array("7c1");                                             // 8串8
+combCrMap["8c9"] = new Array("8c1", "7c1");                                      // 8串9
+combCrMap["8c28"] = new Array("6c1");                                            // 8串28
+combCrMap["8c56"] = new Array("5c1");                                            // 8串56
+combCrMap["8c70"] = new Array("4c1");                                            // 8串70
+combCrMap["8c247"] = new Array("8c1", "7c1", "6c1", "5c1", "4c1", "3c1", "2c1"); // 8串247
+
+/**
+计算有多少注
+**/
+function calTotal(_n_arr,calcZhArray){
+    if (calcZhArray[0].indexOf('c1')) {
+        return calTotal2(_n_arr,calcZhArray);
+    }
+    else{
+        var betNum = 0;
+    var perArray = findNmComb2(_n_arr);
+    // console.log(perArray);
+    for ( var k = 0; k < perArray.length; k++ ) {
+        betNum += calcBetNum(perArray[k], new Array(), calcZhArray);
+        console.log(betNum);
+    }
+    return betNum;
+    }
+}
+
+function calTotal2(_n_arr,calcZhArray){
+    var tmp = new Array();
+    for (var i = 0; i < _n_arr.length; i++) {
+        var a = _n_arr[i];
+        var tmp2 = new Array();
+        for (var j = 0; j < a.length; j++) {
+            if (j == 0) {
+                tmp2 = a[j];
+            }
+            else{
+                tmp2.push(a[j]);
+            }
+        }
+        tmp.push(tmp2);
+    }
+    // console.log(tmp);
+    return calcBetNum(tmp, new Array, calcZhArray);
+}
+
+var odd_high = 0;
+var odd_low = 0;
+
+function calOdd(_n_arr,calcZhArray){
+    var last = combCrMap[calcZhArray][combCrMap[calcZhArray].length - 1];
+    var first = combCrMap[calcZhArray][0];
+    var high = parseInt(first.split("c")[0]);
+    var low = parseInt(last.split("c")[0]);
+    var hA = new Array();
+    var lA = new Array();
+    for (var i = 0; i < _n_arr.length; i++) {
+        var item = _n_arr[i];
+        var th = 0;
+        var tl = 999;
+        for (var j = 0; j < item.length; j++) {
+            if (item[j].max() > th) {
+                th = item[j].max();
+            }
+            if (item[j].min() < tl) {
+                tl = item[j].min();
+            }
+        }
+        hA.push(th);
+        lA.push(tl);
+    }
+    var tmp = soreDes(hA).slice(0,high);
+    odd_high = multiply(tmp);
+    tmp = soreAsc(lA).slice(0,low);
+    odd_low = multiply(tmp);
+}
+
+/**** 下面的函数可以不关心 ***/
+
+function soreDes(arr) {
+    if(!Array.isArray(arr)) return 
+   return arr.sort(function (a, b) {
+              return b.score - a.score
+          })}
+
+function soreAsc(arr) {
+  // 这里可以写一些判断arr是数组的条件
+    if(!Array.isArray(arr)) return 
+   return arr.sort(function (a, b) {
+              return a.score - b.score
+          })}
+
+function multiply(arr) {
+            return arr.reduce(function(a, b) {
+                return a * b;        //如果是相加return a + b 如果是相减return a - b
+            })
+        }
+
+Array.prototype.min = function() {
+var min = this[0];
+var len = this.length;
+for (var i = 1; i < len; i++){ 
+if (this[i] < min){ 
+min = this[i]; 
+} 
+} 
+return min;
+}
+//最大值
+Array.prototype.max = function() { 
+var max = this[0];
+var len = this.length; 
+for (var i = 1; i < len; i++){ 
+if (this[i] > max) { 
+max = this[i]; 
+} 
+} 
+return max;
+}
+
+
+function findNmComb2( ops ) {
+    // console.log(ops[0].length);
+    var result = new Array();
+    for ( var i = 0; i < ops[0].length; i++ ) {
+        var _tArr = new Array();
+        _tArr.push(ops[0][i]);
+        findSubNmComb2( result, _tArr, ops, ops.length-1 );
+    }
+    return result;
+}
+function findSubNmComb2( result, tArr, ops, n ) {
+    if ( n == 0 ) {
+        result.push(tArr);
+    } else {
+        for ( var i = 0; i < ops[ops.length-n].length; i++ ) {
+            var _tArr = new Array();
+            for ( var j = 0; j < tArr.length; j++ ) {
+                _tArr.push(tArr[j]);
+            }
+            _tArr.push(ops[ops.length-n][i]);
+            findSubNmComb2( result, _tArr, ops, n-1 );
+        }
+    }
+
+}
+
+function calcBetNum(_n_arr, _n_arr_dan, _c_arr) {
+    var betNum = 0;
+    var freeArray = new Array();
+    for ( var i = 0; i < _c_arr.length; i++ ) {
+        var pLen = parseInt(_c_arr[i].split("c")[1]);
+        var cLen = parseInt(_c_arr[i].split("c")[0]);
+        if ( pLen > 1 ) {   //  组合过关
+            if ( cLen < (_n_arr.length + _n_arr_dan.length) ) {
+                var tuoArray = findJcComb(_n_arr, _n_arr.length, cLen - _n_arr_dan.length);
+                for ( var j = 0; j < tuoArray.length; j++ ) {
+                    var calcArray = new Array();
+                    for ( var K = 0; K < _n_arr_dan.length; K++ ) {
+                        calcArray.push(_n_arr_dan[K]);
+                    }
+                    for ( var k = 0; k < tuoArray[j].length; k++ ) {
+                        calcArray.push(tuoArray[j][k]);
+                    }
+                    betNum += calcCombCrBetSum(_c_arr[i], calcArray);
+                }
+            } else {
+                var calcArray = new Array();
+                for ( var K = 0; K < _n_arr_dan.length; K++ ) {
+                    calcArray.push(_n_arr_dan[K]);
+                }
+                for ( var k = 0; k < _n_arr.length; k++ ) {
+                    calcArray.push(_n_arr[k]);
+                }
+                betNum += calcCombCrBetSum(_c_arr[i], calcArray);
+            }
+        } else {
+            freeArray.push(_c_arr[i]);
+        }
+    }
+    /* 计算自由过关 */
+    betNum += calcBetSum2(_n_arr, _n_arr_dan, freeArray);
+    return betNum;
+}
+
+function calcBetSum2( _n_arr, _n_arr_dan,_c_arr ) {
+    /** 定义返回值 */
+    var betSum = 0; 
+    /** 首先取出串长 */
+    for ( var i = 0; i < _c_arr.length; i++ ) {
+        var cLen = _c_arr[i].split("")[0];      
+        var oResult = findJcComb( _n_arr, _n_arr.length, parseInt(cLen)-_n_arr_dan.length );
+            
+        for ( var j = 0; j < oResult.length; j++ ) {
+            var oSum = 1;
+            for ( var k = 0; k < oResult[j].length; k++ ) {
+                oSum *= oResult[j][k].length;
+            }
+            for ( var k = 0; k < _n_arr_dan.length; k++ ) {
+                oSum *= _n_arr_dan[k].length;
+            }
+            betSum += oSum;
+
+            // 解除引用便于js垃圾回收
+            oSum = null;
+        }
+
+        // 解除引用便于js垃圾回收
+        cLen = null;
+        oResult = null; 
+    }
+
+    // 解除引用便于js垃圾回收
+    //betSum = null;
+    
+    return betSum;
+}
+
+/**
+ *  计算自由过关注数
+ *  参数
+ *      _n_arr,存储比赛场次，二维数组，如：_n_arr = new Array(new Array("3"),new Array("3","1"),new Array("3","1","0"));
+ *      _c_arr,存储串长，一维数组，如：_c_arr = new Array("2c1","3c1");
+ *  reuturn 注数
+ */
+var high;
+var low;
+
+function calcBetSum( _n_arr, _c_arr ) {
+    /** 定义返回值 */
+    var betSum = 0; 
+    /** 首先取出串长 */
+    var tmph = 1;
+    var tmpl = 1;
+    for ( var i = 0; i < _c_arr.length; i++ ) {
+        var cLen = _c_arr[i].split("")[0];
+        var oResult = findJcComb( _n_arr, _n_arr.length, parseInt(cLen) );
+        // console.log('33');
+        // console.log(oResult);
+        for ( var j = 0; j < oResult.length; j++ ) {
+            var oSum = 1;
+            // console.log('bj1');
+            for ( var k = 0; k < oResult[j].length; k++ ) {
+                // console.log('bj2 ' + oSum + ' ' + oResult[j][k].length);
+                for(var bj = 0 ; bj < oResult[j][k].length ; bj++){
+
+                }
+                oSum *= oResult[j][k].length;
+            }
+            betSum += oSum;
+            // 解除引用便于js垃圾回收
+            oSum = null;
+
+        }
+        // 解除引用便于js垃圾回收
+        cLen = null;
+        oResult = null;
+    }
+    return betSum;
+}
+
+/**
+ *  计算组合过关注数
+ *  参数
+ *      cl,串长，如"3c4"等
+ *      _n_arr,存储比赛场次，二维数组，如：_n_arr = new Array(new Array("3"),new Array("3","1"),new Array("3","1","0"));
+ *  reuturn 注数
+ */
+function calcCombCrBetSum( cl, _n_arr ) {
+    var _c_arr = combCrMap[cl];
+    return calcBetSum( _n_arr, _c_arr );
+}
+
+/**
+ *  竞彩类查找组合
+ *  参数
+ *      ops,二维数组
+ *      n,选择n场比赛
+ *      k,k种组合
+ *  return 3维数组，存储二维数组的组合
+ */
+function findJcComb( ops, n, k ) {
+    var buffer = new Array();   
+    var result = new Array();   
+    var top = -1, tmp = 1;      
+    var counter = 0;
+    do {
+        buffer[++top] = tmp++;
+    } while (top < k - 1);
+    if (top == k - 1) {
+        var tp = new Array();
+        for (var i = 0; i < buffer.length; i++ ) {          
+            tp.push(ops[buffer[i] - 1]);
+        }       
+        result.push(tp);
+    }
+    do {
+        if (top == k - 1) {
+            do {
+                tmp = buffer[top--];
+            } while (tmp > n - (k - (top + 1)) && top > -1);
+        }
+        if (tmp <= n - (k - (top + 1))) { 
+            do {
+                buffer[++top] = ++tmp;
+            } while (top < k - 1); 
+        }
+        if (top == k - 1) {
+            var tp = new Array();
+            for (var i = 0; i < buffer.length; i++ ) {
+                tp.push(ops[buffer[i] - 1]);
+            }           
+            result.push(tp);
+        }
+    } while (top > -1); 
+    console.log(result);
+    return result;
+}
+    </script>
+        <title>我正在爱看球看【丹麦vs澳大利亚】</title>
+    <meta name="Keywords" content="JRS,JRS直播,NBA直播,NBA录像,CBA直播,英超直播,西甲直播,足球直播,篮球直播,低调看,直播吧,CCTV5在线,CCTV5+">
+    <meta name="Description" content="爱看球是一个专业为球迷提供免费的NBA,CBA,英超,西甲,德甲,意甲,法甲,中超,欧冠,世界杯等各大体育赛事直播、解说平台，无广告，无插件，高清，直播线路多">
+    <meta charset="utf-8"/>
+    <meta content="telephone=no,email=no" name="format-detection"/>
+    <meta name="viewport" content="width=device-width, initial-scale=0.5, maximum-scale=0.5, minimum-scale=0.5, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="//static.cdn.dlfyb.com/css/mobile/style_phone.css?rd=201802">
+        <link rel="stylesheet" type="text/css" href="//static.cdn.dlfyb.com/css/mobile/videoPhone2.css">
+    <style>
+        .weixin {
+            padding-bottom: 10px;
+            font-size: 40px;
+            line-height: 60px;
+            text-align: center;
+        }
+        #Navigation + #qsk_click{
+            display: none;
+        }
+    </style>
+    <link rel="Shortcut Icon" data-ng-href="//static.cdn.dlfyb.com/img/pc/ico.ico" href="//static.cdn.dlfyb.com/img/pc/ico.ico">
+    <link href="/img/pc/icon_face.png" sizes="100x100" rel="apple-touch-icon-precomposed">
+</head>
+<body  >
+       
+</body>
+</html>
